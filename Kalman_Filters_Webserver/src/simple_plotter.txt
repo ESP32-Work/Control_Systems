@@ -1,0 +1,55 @@
+#include <Arduino.h>
+
+class KalmanFilter {
+private:
+    float Q = 0.1;  // Process noise
+    float R = 1.0;  // Measurement noise
+    float P = 1.0;  // Estimation error
+    float K = 0.0;  // Kalman gain
+    float X = 0.0;  // State estimate
+
+public:
+    float update(float measurement) {
+        // Prediction
+        P = P + Q;
+
+        // Update
+        K = P / (P + R);
+        X = X + K * (measurement - X);
+        P = (1 - K) * P;
+
+        return X;
+    }
+
+    void setParameters(float process_noise, float measurement_noise) {
+        Q = process_noise;
+        R = measurement_noise;
+    }
+};
+
+// Global variables
+KalmanFilter kalmanFilter;
+
+void setup() {
+    Serial.begin(115200);
+    kalmanFilter.setParameters(0.1, 1.0);
+}
+
+void loop() {
+    // Simulate noisy sensor readings (replace with your actual sensor)
+    float true_value = 10 * sin(millis() / 1000.0);
+    float noisy_measurement = true_value + random(-100, 100) / 100.0;
+    
+    // Apply Kalman filter
+    float filtered_value = kalmanFilter.update(noisy_measurement);
+    Serial.print(">");
+    // Output for Serial Plotter
+    Serial.print("True:");
+    Serial.print(true_value);
+    Serial.print(",Noisy:");
+    Serial.print(noisy_measurement);
+    Serial.print(",Filtered:");
+    Serial.println(filtered_value);
+    
+    delay(50);
+}
